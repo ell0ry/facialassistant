@@ -20,8 +20,8 @@ _CAM_ID = 6
 dark_threshold = 50
 certainty = 0.5
 # TODO: Add back my face to get test
-record_mode = False
-# record_mode = True
+# record_mode = False
+record_mode = True
 
 cap = cv2.VideoCapture(_CAM_ID)
 

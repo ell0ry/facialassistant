@@ -23,8 +23,7 @@ class Camera:
             # If we've got a black frame, return the last recieved frame
             return self.last_frame
 
-        # TODO: Add different colors here potentially
-        self.last_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        self.last_frame = frame
         return self.last_frame
 
     def acquire_movie(self, num_frames):

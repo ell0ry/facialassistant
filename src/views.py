@@ -15,14 +15,14 @@ class StartWindow(QMainWindow):
         # self.button_frame = QPushButton('Acquire Frame', self.central_widget)
         # self.button_movie = QPushButton('Start Movie', self.central_widget)
         self.image_view = ImageView()
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setRange(0,10)
+        # self.slider = QSlider(Qt.Horizontal)
+        # self.slider.setRange(0,10)
 
         self.layout = QVBoxLayout(self.central_widget)
         # self.layout.addWidget(self.button_frame)
         # self.layout.addWidget(self.button_movie)
         self.layout.addWidget(self.image_view)
-        self.layout.addWidget(self.slider)
+        # self.layout.addWidget(self.slider)
         self.setCentralWidget(self.central_widget)
 
         # self.button_frame.clicked.connect(self.update_image)
@@ -40,7 +40,7 @@ class StartWindow(QMainWindow):
         frame = self.camera.get_frame()
         found = self.recognizer.find_faces(frame)
         for face in found.keys():
-            frame = self.recognizer.draw_face(frame, face0)
+            frame = self.recognizer.draw_face(frame, face)
             person = self.recognizer.recognize(found[face])
             print(person)
         self.image_view.setImage(frame.T)
@@ -54,15 +54,12 @@ class StartWindow(QMainWindow):
         # self.movie_thread.start()
 
 
-# class RecognitionThread(QThread):
-    # def __init__(self, camera):
-        # super().__init__()
-        # self.camera = camera
-        # self.recognizer = Recognizer()
-        # self.recognizer.load_models()
+class RecognitionThread(QThread):
+    def __init__(self, recognizer):
+        super().__init__()
 
-    # def run(self):
-        # self.camera.acquire_movie(200)
+    def run(self):
+        self.camera.acquire_movie(200)
 
 if __name__ == '__main__':
     app = QApplication([])

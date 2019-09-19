@@ -15,7 +15,6 @@ class Recognizer:
         self.names = []
         # Path of the main file
         PATH = os.path.abspath(__file__ + "/../..")
-        print(PATH)
         self.enc_file = PATH + "/models/faces.dat"
 
         self.pose_predictor = dlib.shape_predictor(PATH + "/models/shape_predictor_5_face_landmarks.dat")
@@ -27,8 +26,10 @@ class Recognizer:
         try:
             models = json.load(open(self.enc_file))
             for model in models:
-                self.encodings += model["data"]
-                self.names += model["name"]
+                self.encodings.append(model["data"])
+                self.names.append(model["name"])
+            print(self.encodings)
+            print(self.names)
         except FileNotFoundError:
             print("No encodings file")
             sys.exit(10)
@@ -59,27 +60,27 @@ class Recognizer:
 
     def find_faces(self, frame):
         """ Looks through frame and finds and encodes all faces """
-        faces = detector(frame, 1)
+        faces = self.detector(frame, 1)
         
         found = {}
         for face in faces:
 
-            face_landmark = pose_predictor(frame, face)
-            face_encodering = np.array(face_encoder.compute_face_descriptor(frame, face_landmark, 1))
+            face_landmark = self.pose_predictor(frame, face)
+            face_encoding = np.array(self.face_encoder.compute_face_descriptor(frame, face_landmark, 1))
             found[face] = face_encoding
 
         return found
 
     def recognize(self, face_encodering):
         """ Matches face encoding with known faces """
-        matches = np.linalg.norm(encodings - face_encodering, axis=1)
+        matches = np.linalg.norm(self.encodings - face_encodering, axis=1)
         match_index = np.argmin(matches)
         match = matches[match_index]
 
-        if 0 < match < certainty:
+        if 0 < match < _CERTAINTY:
             return self.names[match_index]
         else:
-            return "none"
+            return "Not anybody I know"
 
 
 
