@@ -1,40 +1,57 @@
 import numpy as np
 
 from PyQt5.QtCore import Qt, QThread, QTimer
-from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QVBoxLayout, QApplication, QSlider
+from PyQt5.QtWidgets import QLabel, QMainWindow, QWidget, QPushButton, QVBoxLayout, QApplication, QSlider, QDialog, QGridLayout
 from pyqtgraph import ImageView
+import cv2
+import pyqtgraph as pg
 from recognizer import Recognizer
 
 
-class StartWindow(QMainWindow):
+class StartWindow(QDialog):
+# class StartWindow(QMainWindow):
     def __init__(self, camera = None):
         super().__init__()
         self.camera = camera
 
         self.central_widget = QWidget()
-        # self.button_frame = QPushButton('Acquire Frame', self.central_widget)
-        # self.button_movie = QPushButton('Start Movie', self.central_widget)
-        self.image_view = ImageView()
-        # self.slider = QSlider(Qt.Horizontal)
-        # self.slider.setRange(0,10)
 
-        self.layout = QVBoxLayout(self.central_widget)
-        # self.layout.addWidget(self.button_frame)
-        # self.layout.addWidget(self.button_movie)
-        self.layout.addWidget(self.image_view)
-        # self.layout.addWidget(self.slider)
-        self.setCentralWidget(self.central_widget)
+        self.win = pg.GraphicsLayoutWidget()
+        self.view = self.win.addViewBox()
+        self.img = pg.ImageItem()
+        self.view.addItem(self.img)
 
-        # self.button_frame.clicked.connect(self.update_image)
-        # self.button_movie.clicked.connect(self.start_movie)
-        # self.slider.valueChanged.connect(self.update_brightness)
+        testPushButton = QPushButton("This is a test")
+
+
+        # cam_layout = QVBoxLayout(self.central_widget)
+        cam_layout = QVBoxLayout()
+        # cam_layout.addWidget(self.win)
+        cam_layout.addWidget(testPushButton)
+        cam_layout.addStretch(1)
+        # self.setCentralWidget(self.central_widget)
+
+        main_layout = QGridLayout()
+        # main_layout.addLayout(cam_layout, 0, 0, 1, 1)
+        main_layout.addWidget(self.win, 0, 0)
+        main_layout.addLayout(cam_layout, 0, 1, 1, 1)
+
+        # main_layout.setRowStretch(1, 1)
+        # main_layout.setRowStretch(2, 1)
+        main_layout.setColumnStretch(0, 2)
+        main_layout.setColumnStretch(1, 1)
+ 
+        self.setLayout(main_layout)
 
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update)
-        self.update_timer.start(30)
+        self.update_timer.start(10)
 
         self.recognizer = Recognizer()
         self.recognizer.load_models()
+
+
+        self.setWindowTitle("Recognizer")
 
     def update(self):
         frame = self.camera.get_frame()
@@ -43,23 +60,21 @@ class StartWindow(QMainWindow):
             frame = self.recognizer.draw_face(frame, face)
             person = self.recognizer.recognize(found[face])
             print(person)
-        self.image_view.setImage(frame.T)
-
-    def update_brightness(self, value):
-        value /= 10
-        self.camera.set_brightness(value)
-
-    # def start_movie(self):
-        # self.movie_thread = MovieThread(self.camera)
-        # self.movie_thread.start()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # self.img.setImage(np.flip(gray).T)
+        self.img.setImage(np.rot90(gray, 3))
 
 
 class RecognitionThread(QThread):
     def __init__(self, recognizer):
         super().__init__()
+        self._found = {}
 
     def run(self):
         self.camera.acquire_movie(200)
+
+    def get_found(self):
+        return self._found
 
 if __name__ == '__main__':
     app = QApplication([])

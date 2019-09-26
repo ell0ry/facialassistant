@@ -9,6 +9,7 @@ class Camera:
         self.cam_num = cam_num
         self.cap = None
         self.last_frame = np.zeros((1,1))
+        self.gray_frame = np.zeros((1,1))
 
     def initialize(self):
         self.cap = cv2.VideoCapture(self.cam_num)
@@ -23,6 +24,7 @@ class Camera:
             # If we've got a black frame, return the last recieved frame
             return self.last_frame
 
+        # self.gray_frame = gray
         self.last_frame = frame
         return self.last_frame
 
