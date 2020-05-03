@@ -21,13 +21,15 @@ class StartWindow(QDialog):
         self.img = pg.ImageItem()
         self.view.addItem(self.img)
 
-        testPushButton = QPushButton("This is a test")
+        # testPushButton = QPushButton("This is a test")
 
 
         # cam_layout = QVBoxLayout(self.central_widget)
         cam_layout = QVBoxLayout()
         # cam_layout.addWidget(self.win)
-        cam_layout.addWidget(testPushButton)
+
+        # Had this uncommented.
+        # cam_layout.addWidget(testPushButton)
         cam_layout.addStretch(1)
         # self.setCentralWidget(self.central_widget)
 
@@ -38,8 +40,10 @@ class StartWindow(QDialog):
 
         # main_layout.setRowStretch(1, 1)
         # main_layout.setRowStretch(2, 1)
-        main_layout.setColumnStretch(0, 2)
-        main_layout.setColumnStretch(1, 1)
+
+        # Had these uncommented.
+        # main_layout.setColumnStretch(0, 2)
+        # main_layout.setColumnStretch(1, 1)
  
         self.setLayout(main_layout)
 
@@ -55,26 +59,29 @@ class StartWindow(QDialog):
 
     def update(self):
         frame = self.camera.get_frame()
-        found = self.recognizer.find_faces(frame)
-        for face in found.keys():
-            frame = self.recognizer.draw_face(frame, face)
-            person = self.recognizer.recognize(found[face])
+        encodings, landmarks = self.recognizer.find_faces(frame)
+        for face in encodings.keys():
+            frame = self.recognizer.draw_face(frame, face, landmarks[face])
+            person = self.recognizer.recognize(encodings[face])
             print(person)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # self.img.setImage(np.flip(gray).T)
         self.img.setImage(np.rot90(gray, 3))
+        # self.img.setImage(np.rot90(frame, 3))
+        # self.img.setImage(np.rot90(np.flip(frame).T), 3)
 
 
 class RecognitionThread(QThread):
     def __init__(self, recognizer):
         super().__init__()
-        self._found = {}
+        self._encodings = {}
 
     def run(self):
         self.camera.acquire_movie(200)
 
-    def get_found(self):
-        return self._found
+    def get_encodings(self):
+        return self._encodings
 
 if __name__ == '__main__':
     app = QApplication([])

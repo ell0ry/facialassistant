@@ -43,7 +43,7 @@ class Recognizer:
             json.dump(encodings, datafile)
 
 
-    def draw_face(self, frame, face):
+    def draw_face(self, frame, face, landmarks):
         """ Modifies a frame to draw an oval aroud a face """
         x = int((face.right() - face.left()) / 2) + face.left()
         y = int((face.bottom() - face.top()) / 2) + face.top()
@@ -55,6 +55,16 @@ class Recognizer:
 
         # Draw the Circle in green
         cv2.circle(frame, (x, y), r, (0, 0, 230), 2)
+
+        eye_color = (0,255,0)
+        # Draw right eye.
+        cv2.circle(frame, tuple(landmarks[2]), 4, eye_color, -1)
+        cv2.circle(frame, tuple(landmarks[3]), 4, eye_color, -1)
+
+        # Draw left eye.
+        cv2.circle(frame, tuple(landmarks[0]), 4, eye_color, -1)
+        cv2.circle(frame, tuple(landmarks[1]), 4, eye_color, -1)
+
         
         return frame
 
@@ -62,14 +72,25 @@ class Recognizer:
         """ Looks through frame and finds and encodes all faces """
         faces = self.detector(frame, 1)
         
-        found = {}
+        encodings = {}
+        landmarks = {}
+
         for face in faces:
 
             face_landmark = self.pose_predictor(frame, face)
             face_encoding = np.array(self.face_encoder.compute_face_descriptor(frame, face_landmark, 1))
-            found[face] = face_encoding
+            encodings[face] = face_encoding
 
-        return found
+            cur_landmarks = np.zeros((face_landmark.num_parts, 2), dtype='i')
+
+            # loop over all facial landmarks and convert them
+            # to a 2-tuple of (x, y)-coordinates
+            for i in range(0, face_landmark.num_parts):
+                    cur_landmarks[i] = (face_landmark.part(i).x, face_landmark.part(i).y)
+
+            landmarks[face] = cur_landmarks
+
+        return encodings, landmarks
 
     def recognize(self, face_encodering):
         """ Matches face encoding with known faces """
